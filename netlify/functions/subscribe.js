@@ -4,35 +4,37 @@ exports.handler = async function(event, context) {
   }
 
   try {
-    const { email, tags } = JSON.parse(event.body);
+    const { email } = JSON.parse(event.body);
 
-    const KIT_API_KEY = process.env.KIT_API_KEY;
-    const KIT_FORM_ID = process.env.KIT_FORM_ID;
+    const MAILERLITE_API_KEY = process.env.MAILERLITE_API_KEY;
+    const MAILERLITE_GROUP_ID = process.env.MAILERLITE_GROUP_ID;
 
-    // Subscribe to Kit form
-    const res = await fetch(`https://api.convertkit.com/v3/forms/${KIT_FORM_ID}/subscribe`, {
+    // Subscribe to MailerLite group
+    const res = await fetch('https://connect.mailerlite.com/api/subscribers', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${MAILERLITE_API_KEY}`
+      },
       body: JSON.stringify({
-        api_key: KIT_API_KEY,
         email: email,
-        tags: tags || []
+        groups: [MAILERLITE_GROUP_ID]
       })
     });
 
     const data = await res.json();
 
-    if (data.subscription) {
+    if (res.ok && data.data) {
       return {
         statusCode: 200,
         headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*'
         },
-        body: JSON.stringify({ success: true, subscriber: data.subscription })
+        body: JSON.stringify({ success: true, subscriber: data.data })
       };
     } else {
-      throw new Error('Kit subscription failed');
+      throw new Error(data.message || 'MailerLite subscription failed');
     }
 
   } catch(err) {
