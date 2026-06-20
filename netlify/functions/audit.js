@@ -6,6 +6,8 @@ exports.handler = async function(event, context) {
   try {
     const body = JSON.parse(event.body);
 
+    console.log('Audit request received, API key present:', !!process.env.ANTHROPIC_API_KEY);
+
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -21,6 +23,9 @@ exports.handler = async function(event, context) {
     });
 
     const data = await response.json();
+
+    console.log('Anthropic API status:', response.status);
+    console.log('Anthropic API response:', JSON.stringify(data).slice(0, 500));
 
     return {
       statusCode: 200,
