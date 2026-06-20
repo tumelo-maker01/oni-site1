@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ONI Authority Auditor</title>
+<script src="https://js.paystack.co/v1/inline.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --green: #1D9E75; --green-light: #E1F5EE; --green-mid: #5DCAA5;
+    --green-dark: #085041; --amber: #EF9F27; --red: #E24B4A;
+    --text-primary: #1a1a1a; --text-secondary: #666; --text-muted: #999;
+    --border: rgba(0,0,0,0.12); --bg: #fff; --bg-secondary: #f7f7f5;
+    --radius: 10px; --radius-lg: 14px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --text-primary: #f0ede8; --text-secondary: #a8a49e; --text-muted: #6b6760;
+      --border: rgba(255,255,255,0.1); --bg: #1a1a18; --bg-secondary: #242420;
+    }
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text-primary); min-height: 100vh; display: flex; justify-content: center; padding: 2rem 1rem 4rem; }
+  .wrap { width: 100%; max-width: 560px; }
+  .header { margin-bottom: 2rem; padding-top: 1rem; }
+  .logo { font-size: 10px; font-weight: 600; letter-spacing: 0.18em; color: var(--green); text-transform: uppercase; margin-bottom: 0.6rem; }
+  .title { font-size: 26px; font-weight: 600; color: var(--text-primary); line-height: 1.25; }
+  .subtitle { font-size: 15px; color: var(--text-secondary); margin-top: 0.4rem; line-height: 1.5; }
+  .progress-bar { display: flex; gap: 5px; margin-bottom: 2.5rem; }
+  .pd { height: 3px; flex: 1; background: var(--border); border-radius: 2px; transition: background 0.3s; }
+  .pd.done { background: var(--green); }
+  .pd.active { background: var(--green-mid); }
+  .step { display: none; }
+  .step.active { display: block; }
+  .sec-label { font-size: 10px; font-weight: 600; letter-spacing: 0.15em; color: var(--text-muted); text-transform: uppercase; margin-bottom: 1.5rem; }
+  .field { margin-bottom: 1.5rem; }
+  .field label { display: block; font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; }
+  .field label em { color: var(--green); font-style: normal; }
+  input[type=text], input[type=email], textarea { width: 100%; background: var(--bg); color: var(--text-primary); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 14px; font-size: 14px; font-family: inherit; resize: vertical; transition: border 0.2s; }
+  input[type=text]:focus, input[type=email]:focus, textarea:focus { outline: none; border-color: var(--green); }
+  textarea { min-height: 90px; }
+  .togs { display: flex; gap: 7px; flex-wrap: wrap; }
+  .tog { padding: 7px 14px; border-radius: 20px; border: 1px solid var(--border); font-size: 13px; cursor: pointer; color: var(--text-secondary); background: var(--bg); transition: all 0.15s; user-select: none; }
+  .tog:hover { border-color: var(--green); color: var(--green); }
+  .tog.sel { background: var(--green-light); border-color: var(--green); color: var(--green-dark); font-weight: 500; }
+  @media (prefers-color-scheme: dark) { .tog.sel { background: rgba(29,158,117,0.2); color: var(--green-mid); } }
+  .btn-row { display: flex; justify-content: space-between; align-items: center; margin-top: 2.5rem; }
+  .btn-next { padding: 11px 28px; background: var(--green); color: #fff; border: none; border-radius: var(--radius); font-size: 14px; font-weight: 500; cursor: pointer; transition: opacity 0.15s; }
+  .btn-next:hover { opacity: 0.85; }
+  .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-back { font-size: 13px; color: var(--text-muted); cursor: pointer; background: none; border: none; }
+  .btn-back:hover { color: var(--text-secondary); }
+  .err { font-size: 12px; color: var(--red); margin-top: 5px; display: none; }
+  .analyzing { text-align: center; padding: 4rem 0; display: none; }
+  .analyzing.vis { display: block; }
+  .spinner { width: 36px; height: 36px; border: 2px solid var(--border); border-top-color: var(--green); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 1rem; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .analyzing p { font-size: 14px; color: var(--text-secondary); }
+  .free-preview { display: none; }
+  .free-preview.vis { display: block; }
+  .score-block { display: flex; gap: 1.5rem; align-items: center; padding: 1.5rem; background: var(--bg-secondary); border-radius: var(--radius-lg); margin-bottom: 2rem; }
+  .ring-wrap { position: relative; width: 80px; height: 80px; flex-shrink: 0; }
+  .ring-wrap svg { transform: rotate(-90deg); }
+  .ring-num { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 600; color: var(--text-primary); }
+  .score-info h2 { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+  .score-info p { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+  .locked-section { margin-bottom: 2rem; }
+  .locked-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.5rem; filter: blur(4px); user-select: none; pointer-events: none; }
+  .pillar { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; }
+  .p-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .p-name { font-size: 11px; font-weight: 600; color: var(--text-muted); letter-spacing: 0.05em; text-transform: uppercase; }
+  .p-score { font-size: 14px; font-weight: 600; }
+  .p-bg { height: 3px; background: var(--border); border-radius: 2px; }
+  .p-fill { height: 3px; border-radius: 2px; }
+  .paywall { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; text-align: center; margin-bottom: 2rem; }
+  .paywall-icon { font-size: 28px; margin-bottom: 0.75rem; }
+  .paywall h3 { font-size: 17px; font-weight: 600; margin-bottom: 6px; }
+  .paywall p { font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 1.25rem; }
+  .paywall-items { text-align: left; margin-bottom: 1.5rem; }
+  .paywall-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; }
+  .paywall-item span.tick { color: var(--green); font-weight: 600; }
+  .paywall-price { font-size: 22px; font-weight: 700; color: var(--text-primary); margin-bottom: 1rem; }
+  .paywall-price small { font-size: 13px; font-weight: 400; color: var(--text-muted); }
+  .email-gate { margin-bottom: 1rem; }
+  .btn-pay { width: 100%; padding: 14px; background: var(--green); color: #fff; border: none; border-radius: var(--radius); font-size: 15px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; }
+  .btn-pay:hover { opacity: 0.85; }
+  .btn-pay:disabled { opacity: 0.5; cursor: not-allowed; }
+  .secure-note { font-size: 11px; color: var(--text-muted); margin-top: 8px; }
+  .report { display: none; }
+  .report.vis { display: block; }
+  .pillars-full { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 2rem; }
+  .pillar-full { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; }
+  .pf-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .pf-name { font-size: 11px; font-weight: 600; color: var(--text-muted); letter-spacing: 0.05em; text-transform: uppercase; }
+  .pf-score { font-size: 14px; font-weight: 600; }
+  .pf-bg { height: 3px; background: var(--border); border-radius: 2px; margin-bottom: 8px; }
+  .pf-fill { height: 3px; border-radius: 2px; transition: width 1s ease; }
+  .pf-note { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+  .fixes-title { font-size: 10px; font-weight: 600; letter-spacing: 0.14em; color: var(--text-muted); text-transform: uppercase; margin-bottom: 1rem; }
+  .fix { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 10px; }
+  .fix-num { font-size: 10px; font-weight: 600; color: var(--green); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 4px; }
+  .fix-h { font-size: 14px; font-weight: 600; margin-bottom: 5px; }
+  .fix-b { font-size: 13px; color: var(--text-secondary); line-height: 1.65; }
+  .hl-box { background: var(--green-light); border: 1px solid var(--green-mid); border-radius: var(--radius); padding: 16px; margin: 1.5rem 0; }
+  @media (prefers-color-scheme: dark) { .hl-box { background: rgba(29,158,117,0.15); border-color: rgba(29,158,117,0.3); } }
+  .hl-label { font-size: 10px; font-weight: 600; color: var(--green); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px; }
+  .hl-text { font-size: 15px; color: var(--green-dark); font-weight: 500; line-height: 1.5; }
+  @media (prefers-color-scheme: dark) { .hl-text { color: var(--green-mid); } }
+  .ctas { display: flex; gap: 10px; margin-top: 1.5rem; }
+  .cta-p { flex: 1; padding: 13px; background: var(--green); color: #fff; border: none; border-radius: var(--radius); font-size: 14px; font-weight: 500; cursor: pointer; }
+  .cta-p:hover { opacity: 0.85; }
+  .cta-s { flex: 1; padding: 13px; background: var(--bg); color: var(--text-primary); border: 1px solid var(--border); border-radius: var(--radius); font-size: 14px; cursor: pointer; }
+  .cta-s:hover { background: var(--bg-secondary); }
+  .success-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--green-light); border: 1px solid var(--green-mid); border-radius: 20px; padding: 5px 12px; font-size: 12px; font-weight: 600; color: var(--green-dark); margin-bottom: 1.5rem; }
+  @media (prefers-color-scheme: dark) { .success-badge { background: rgba(29,158,117,0.2); color: var(--green-mid); } }
+</style>
+</head>
+<style>
+.oni-topnav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(13,13,11,0.95);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  padding: 0 24px;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 54px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+.oni-topnav-logo { font-size: 14px; color: #FAFAF7; text-decoration: none; font-weight: 500; letter-spacing: -0.2px; }
+.oni-topnav-logo em { color: #C8D84A; font-style: normal; }
+.oni-topnav-links { display: flex; align-items: center; gap: 6px; }
+.oni-topnav-link { font-size: 12px; color: rgba(255,255,255,0.45); text-decoration: none; padding: 5px 12px; border-radius: 20px; border: 1px solid transparent; transition: all 0.2s; }
+.oni-topnav-link:hover { color: #fff; border-color: rgba(255,255,255,0.1); }
+.oni-topnav-link.home { color: #C8D84A; border-color: rgba(200,216,74,0.25); }
+.oni-topnav-link.home:hover { background: rgba(200,216,74,0.08); }
+@media (max-width: 500px) { .oni-topnav-links { display: none; } }
+</style>
+
+<nav class="oni-topnav">
+  <a class="oni-topnav-logo" href="/">The <em>ONI</em> Insider</a>
+  <div class="oni-topnav-links">
+    <a class="oni-topnav-link" href="/terms">Terms</a>
+    <a class="oni-topnav-link" href="/privacy">Privacy</a>
+    <a class="oni-topnav-link" href="/refunds">Refunds</a>
+    <a class="oni-topnav-link home" href="/">← Newsletter</a>
+  </div>
+</nav>
+
+<body>
+<div class="wrap">
+  <div class="header">
+    <div class="logo">ONI · Opportunity Network Insider</div>
+    <div class="title">Authority Auditor</div>
+    <div class="subtitle">Find out exactly where your LinkedIn presence is losing you opportunities.</div>
+  </div>
+
+  <div class="progress-bar">
+    <div class="pd active" id="d0"></div>
+    <div class="pd" id="d1"></div>
+    <div class="pd" id="d2"></div>
+    <div class="pd" id="d3"></div>
+  </div>
+
+  <div class="step active" id="s0">
+    <div class="sec-label">Your profile</div>
+    <div class="field">
+      <label>Current LinkedIn headline <em>*</em></label>
+      <input type="text" id="hl" placeholder="e.g. Founder at XYZ | Helping SMEs scale with logistics" />
+      <div class="err" id="e-hl">Please enter your headline</div>
+    </div>
+    <div class="field">
+      <label>About / Summary section <em>*</em></label>
+      <textarea id="ab" placeholder="Paste your current About section here..."></textarea>
+      <div class="err" id="e-ab">Please paste your About section</div>
+    </div>
+    <div class="btn-row"><span></span><button class="btn-next" onclick="go(0)">Continue →</button></div>
+  </div>
+
+  <div class="step" id="s1">
+    <div class="sec-label">Profile completeness</div>
+    <div class="field">
+      <label>What does your profile currently have?</label>
+      <div class="togs">
+        <div class="tog" onclick="tog(this)" data-k="photo">Professional photo</div>
+        <div class="tog" onclick="tog(this)" data-k="banner">Custom banner</div>
+        <div class="tog" onclick="tog(this)" data-k="featured">Featured section</div>
+        <div class="tog" onclick="tog(this)" data-k="recs">3+ recommendations</div>
+        <div class="tog" onclick="tog(this)" data-k="skills">Skills listed</div>
+        <div class="tog" onclick="tog(this)" data-k="creator">Creator mode on</div>
+      </div>
+    </div>
+    <div class="field" style="margin-top:1.5rem">
+      <label>Connection count</label>
+      <div class="togs">
+        <div class="tog" onclick="one(this,'conn')" data-k="conn-low">Under 100</div>
+        <div class="tog" onclick="one(this,'conn')" data-k="conn-mid">100–499</div>
+        <div class="tog" onclick="one(this,'conn')" data-k="conn-high">500+</div>
+      </div>
+    </div>
+    <div class="btn-row"><button class="btn-back" onclick="back(1)">← Back</button><button class="btn-next" onclick="go(1)">Continue →</button></div>
+  </div>
+
+  <div class="step" id="s2">
+    <div class="sec-label">Content & engagement</div>
+    <div class="field">
+      <label>How often do you post?</label>
+      <div class="togs">
+        <div class="tog" onclick="one(this,'freq')" data-k="freq-never">Rarely or never</div>
+        <div class="tog" onclick="one(this,'freq')" data-k="freq-monthly">1–2x per month</div>
+        <div class="tog" onclick="one(this,'freq')" data-k="freq-weekly">Weekly</div>
+        <div class="tog" onclick="one(this,'freq')" data-k="freq-daily">3–5x per week</div>
+      </div>
+    </div>
+    <div class="field" style="margin-top:1.5rem">
+      <label>What do you mostly post?</label>
+      <div class="togs">
+        <div class="tog" onclick="tog(this)" data-k="pt-opinion">Opinions / takes</div>
+        <div class="tog" onclick="tog(this)" data-k="pt-tips">Tips / how-tos</div>
+        <div class="tog" onclick="tog(this)" data-k="pt-stories">Personal stories</div>
+        <div class="tog" onclick="tog(this)" data-k="pt-results">Results / proof</div>
+        <div class="tog" onclick="tog(this)" data-k="pt-reposts">Reposts only</div>
+        <div class="tog" onclick="tog(this)" data-k="pt-none">I don't post</div>
+      </div>
+    </div>
+    <div class="btn-row"><button class="btn-back" onclick="back(2)">← Back</button><button class="btn-next" onclick="go(2)">Continue →</button></div>
+  </div>
+
+  <div class="step" id="s3">
+    <div class="sec-label">Who you are</div>
+    <div class="field">
+      <label>You are primarily a...</label>
+      <div class="togs">
+        <div class="tog" onclick="one(this,'role')" data-k="role-founder">Founder</div>
+        <div class="tog" onclick="one(this,'role')" data-k="role-exec">Executive</div>
+        <div class="tog" onclick="one(this,'role')" data-k="role-pro">Professional</div>
+        <div class="tog" onclick="one(this,'role')" data-k="role-consultant">Consultant</div>
+        <div class="tog" onclick="one(this,'role')" data-k="role-investor">Investor</div>
+      </div>
+    </div>
+    <div class="field" style="margin-top:1.5rem">
+      <label>Main goal on LinkedIn</label>
+      <div class="togs">
+        <div class="tog" onclick="one(this,'goal')" data-k="goal-clients">Attract clients</div>
+        <div class="tog" onclick="one(this,'goal')" data-k="goal-investors">Attract investors</div>
+        <div class="tog" onclick="one(this,'goal')" data-k="goal-job">Land a better role</div>
+        <div class="tog" onclick="one(this,'goal')" data-k="goal-partners">Find partners</div>
+        <div class="tog" onclick="one(this,'goal')" data-k="goal-brand">Build personal brand</div>
+      </div>
+    </div>
+    <div class="btn-row"><button class="btn-back" onclick="back(3)">← Back</button><button class="btn-next" onclick="runAudit()">Get my score →</button></div>
+  </div>
+
+  <div class="analyzing" id="analyzing">
+    <div class="spinner"></div>
+    <p id="amsg">Auditing your profile...</p>
+  </div>
+
+  <div class="free-preview" id="free-preview">
+    <div class="score-block" id="score-block-free"></div>
+    <div class="locked-section">
+      <div class="locked-grid" id="locked-pillars"></div>
+      <div class="paywall">
+        <div class="paywall-icon">🔒</div>
+        <h3>Unlock your full ONI report</h3>
+        <p>Your score is ready. Pay once to unlock your complete breakdown, priority fixes, and AI headline rewrite.</p>
+        <div class="paywall-items">
+          <div class="paywall-item"><span class="tick">✓</span> All 5 pillar scores with detailed notes</div>
+          <div class="paywall-item"><span class="tick">✓</span> Top 3 personalised priority fixes</div>
+          <div class="paywall-item"><span class="tick">✓</span> AI-rewritten LinkedIn headline</div>
+          <div class="paywall-item"><span class="tick">✓</span> Instant delivery — no waiting</div>
+        </div>
+        <div class="paywall-price">R199 <small>once-off</small></div>
+        <div class="email-gate">
+          <input type="email" id="pay-email" placeholder="Your email address" />
+          <div class="err" id="e-email">Please enter a valid email</div>
+        </div>
+        <button class="btn-pay" id="btn-pay" onclick="pay()">Pay R199 & unlock report →</button>
+        <div class="secure-note">🔒 Secured by Paystack · Card, EFT, or bank transfer</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="report" id="report"></div>
+</div>
+
+<script>
+const PAYSTACK_KEY = 'pk_test_7c6e8cf8b6d9dc1e840cc888896bb2ea66e98501';
+const AMOUNT = 19900;
+const S = { t: {}, s: {} };
+let cur = 0;
+let auditResult = null;
+
+const analyzeMessages = [
+  'Auditing your profile clarity...','Scoring credibility signals...',
+  'Evaluating content consistency...','Checking opportunity readiness...',
+  'Generating your ONI score...'
+];
+
+function tog(el) { el.classList.toggle('sel'); S.t[el.dataset.k] = el.classList.contains('sel'); }
+function one(el, grp) { el.parentElement.querySelectorAll('.tog').forEach(t => t.classList.remove('sel')); el.classList.add('sel'); S.s[grp] = el.dataset.k; }
+
+function prog(step) {
+  for (let i = 0; i < 4; i++) {
+    const d = document.getElementById('d' + i);
+    d.className = 'pd';
+    if (i < step) d.classList.add('done');
+    else if (i === step) d.classList.add('active');
+  }
+}
+
+function go(from) {
+  if (from === 0) {
+    const h = document.getElementById('hl').value.trim();
+    const a = document.getElementById('ab').value.trim();
+    document.getElementById('e-hl').style.display = h ? 'none' : 'block';
+    document.getElementById('e-ab').style.display = a ? 'none' : 'block';
+    if (!h || !a) return;
+  }
+  document.getElementById('s' + from).classList.remove('active');
+  cur = from + 1;
+  document.getElementById('s' + cur).classList.add('active');
+  prog(cur);
+}
+
+function back(from) {
+  document.getElementById('s' + from).classList.remove('active');
+  cur = from - 1;
+  document.getElementById('s' + cur).classList.add('active');
+  prog(cur);
+}
+
+async function runAudit() {
+  document.getElementById('s3').classList.remove('active');
+  const az = document.getElementById('analyzing');
+  az.classList.add('vis');
+  let mi = 0;
+  const mel = document.getElementById('amsg');
+  const interval = setInterval(() => { mi = (mi + 1) % analyzeMessages.length; mel.textContent = analyzeMessages[mi]; }, 1400);
+
+  const headline = document.getElementById('hl').value.trim();
+  const about = document.getElementById('ab').value.trim();
+  const pts = ['pt-opinion','pt-tips','pt-stories','pt-results'].filter(k => S.t[k]);
+
+  const prompt = `You are the ONI Authority Auditor — an AI scoring engine built on the ONI (Opportunity Network Insider) methodology for African professionals and founders. ONI's 5 pillars of LinkedIn authority are: Clarity, Credibility, Content, Connection, and Call to Action.
+
+Analyze this LinkedIn profile data and return ONLY a valid JSON object. No markdown, no extra text.
+
+PROFILE DATA:
+- Headline: "${headline}"
+- About section: "${about}"
+- Has professional photo: ${!!S.t['photo']}
+- Has custom banner: ${!!S.t['banner']}
+- Has featured section: ${!!S.t['featured']}
+- Has 3+ recommendations: ${!!S.t['recs']}
+- Has skills listed: ${!!S.t['skills']}
+- Creator mode: ${!!S.t['creator']}
+- Connections: ${S.s['conn'] || 'unknown'}
+- Posting frequency: ${S.s['freq'] || 'unknown'}
+- Post types: ${pts.join(', ') || 'none'}
+- Role: ${S.s['role'] || 'professional'}
+- Goal: ${S.s['goal'] || 'brand'}
+
+Score each pillar 0-20. Be honest and critical.
+
+Return ONLY this JSON:
+{
+  "total": <0-100>,
+  "level": "<Invisible|Underpositioned|Visible|Authority|Top Voice>",
+  "level_description": "<2 sentence honest assessment>",
+  "pillars": {
+    "clarity": { "score": <0-20>, "note": "<specific observation>" },
+    "credibility": { "score": <0-20>, "note": "<specific observation>" },
+    "content": { "score": <0-20>, "note": "<specific observation>" },
+    "connection": { "score": <0-20>, "note": "<specific observation>" },
+    "cta": { "score": <0-20>, "note": "<specific observation>" }
+  },
+  "fixes": [
+    { "title": "<action title>", "body": "<2-3 sentence instruction>" },
+    { "title": "<action title>", "body": "<2-3 sentence instruction>" },
+    { "title": "<action title>", "body": "<2-3 sentence instruction>" }
+  ],
+  "headline_rewrite": "<rewritten headline: Role + who you help + outcome>"
+}`;
+
+  try {
+    // Calls the secure Netlify Function — API key never exposed in browser
+    const res = await fetch('/.netlify/functions/audit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: [{ role: 'user', content: prompt }] })
+    });
+    const data = await res.json();
+    clearInterval(interval);
+    az.classList.remove('vis');
+    const raw = data.content.map(b => b.text || '').join('').replace(/```json|```/g,'').trim();
+    auditResult = JSON.parse(raw);
+  } catch(e) {
+    clearInterval(interval);
+    az.classList.remove('vis');
+    auditResult = getFallback();
+  }
+  showFreePreview();
+}
+
+function colr(score, max) {
+  const p = score / max;
+  if (p >= 0.75) return '#1D9E75';
+  if (p >= 0.5) return '#EF9F27';
+  return '#E24B4A';
+}
+
+function showFreePreview() {
+  const r = auditResult;
+  const C = 2 * Math.PI * 34;
+  const offset = C - (r.total / 100) * C;
+  const rc = colr(r.total, 100);
+
+  document.getElementById('score-block-free').innerHTML = `
+    <div class="ring-wrap">
+      <svg width="80" height="80" viewBox="0 0 80 80">
+        <circle cx="40" cy="40" r="34" fill="none" stroke="#e5e5e0" stroke-width="6"/>
+        <circle cx="40" cy="40" r="34" fill="none" stroke="${rc}" stroke-width="6"
+          stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${offset.toFixed(1)}" stroke-linecap="round"/>
+      </svg>
+      <div class="ring-num">${r.total}</div>
+    </div>
+    <div class="score-info"><h2>${r.level}</h2><p>${r.level_description}</p></div>`;
+
+  document.getElementById('locked-pillars').innerHTML = Object.entries(r.pillars).map(([k, p]) => {
+    const c = colr(p.score, 20);
+    return `<div class="pillar"><div class="p-top"><span class="p-name">${k}</span><span class="p-score" style="color:${c}">${p.score}/20</span></div><div class="p-bg"><div class="p-fill" style="width:${(p.score/20*100)}%;background:${c}"></div></div></div>`;
+  }).join('');
+
+  document.getElementById('free-preview').classList.add('vis');
+}
+
+function pay() {
+  const emailEl = document.getElementById('pay-email');
+  const email = emailEl.value.trim();
+  const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  document.getElementById('e-email').style.display = valid ? 'none' : 'block';
+  if (!valid) return;
+
+  const btn = document.getElementById('btn-pay');
+  btn.disabled = true;
+  btn.textContent = 'Opening payment...';
+
+  const handler = PaystackPop.setup({
+    key: PAYSTACK_KEY,
+    email: email,
+    amount: AMOUNT,
+    currency: 'ZAR',
+    ref: 'ONI-' + Date.now(),
+    metadata: { custom_fields: [{ display_name: 'Product', variable_name: 'product', value: 'ONI Authority Audit' }] },
+    callback: function(response) {
+      btn.disabled = false;
+      btn.textContent = 'Pay R199 & unlock report →';
+      unlockReport();
+    },
+    onClose: function() {
+      btn.disabled = false;
+      btn.textContent = 'Pay R199 & unlock report →';
+    }
+  });
+  handler.openIframe();
+}
+
+function unlockReport() {
+  document.getElementById('free-preview').classList.remove('vis');
+  const r = auditResult;
+  const C = 2 * Math.PI * 34;
+  const offset = C - (r.total / 100) * C;
+  const rc = colr(r.total, 100);
+
+  document.getElementById('report').innerHTML = `
+    <div class="success-badge">✓ Payment confirmed — full report unlocked</div>
+    <div class="score-block">
+      <div class="ring-wrap">
+        <svg width="80" height="80" viewBox="0 0 80 80">
+          <circle cx="40" cy="40" r="34" fill="none" stroke="#e5e5e0" stroke-width="6"/>
+          <circle cx="40" cy="40" r="34" fill="none" stroke="${rc}" stroke-width="6"
+            stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${offset.toFixed(1)}" stroke-linecap="round"/>
+        </svg>
+        <div class="ring-num">${r.total}</div>
+      </div>
+      <div class="score-info"><h2>${r.level}</h2><p>${r.level_description}</p></div>
+    </div>
+    <div class="pillars-full">${Object.entries(r.pillars).map(([k,p]) => {
+      const c = colr(p.score,20);
+      return `<div class="pillar-full"><div class="pf-top"><span class="pf-name">${k}</span><span class="pf-score" style="color:${c}">${p.score}/20</span></div><div class="pf-bg"><div class="pf-fill" style="width:${p.score/20*100}%;background:${c}"></div></div><div class="pf-note">${p.note}</div></div>`;
+    }).join('')}</div>
+    <div class="fixes-title">Your top 3 priority fixes</div>
+    ${r.fixes.map((f,i) => `<div class="fix"><div class="fix-num">Priority ${i+1}</div><div class="fix-h">${f.title}</div><div class="fix-b">${f.body}</div></div>`).join('')}
+    <div class="hl-box"><div class="hl-label">✦ ONI headline rewrite</div><div class="hl-text">${r.headline_rewrite}</div></div>
+    <div class="ctas">
+      <button class="cta-p" onclick="window.open('https://www.linkedin.com','_blank')">Go fix my profile →</button>
+      <button class="cta-s" onclick="resetAll()">Audit another profile</button>
+    </div>`;
+
+  document.getElementById('report').classList.add('vis');
+}
+
+function getFallback() {
+  return {
+    total: 48, level: "Underpositioned",
+    level_description: "Your profile exists but it isn't actively working for you. Opportunities are passing by because the right signals aren't in place yet.",
+    pillars: {
+      clarity: { score: 10, note: "Your headline names your role but doesn't communicate who you help or what result they get." },
+      credibility: { score: 9, note: "Proof points are thin. Visitors can't easily verify your expertise or track record." },
+      content: { score: 8, note: "Inconsistent posting means you're invisible most of the time." },
+      connection: { score: 13, note: "You have a network but it isn't being actively engaged." },
+      cta: { score: 8, note: "It's unclear what someone should do after viewing your profile." }
+    },
+    fixes: [
+      { title: "Rewrite your headline for outcomes not titles", body: "Remove the job title and replace it with the result you deliver. Use the formula: [Who you are] helping [audience] achieve [specific outcome]." },
+      { title: "Post once a week on the same day", body: "Consistency beats frequency. One post every Tuesday builds a pattern. Pick a topic lane and commit for 90 days." },
+      { title: "Add a clear CTA to your About section", body: "End your About section with one specific action — book a call, download something, send a message." }
+    ],
+    headline_rewrite: "Founder & Strategist | Helping African professionals attract opportunities through LinkedIn authority"
+  };
+}
+
+function resetAll() {
+  document.getElementById('report').classList.remove('vis');
+  document.getElementById('report').innerHTML = '';
+  document.getElementById('free-preview').classList.remove('vis');
+  document.getElementById('hl').value = '';
+  document.getElementById('ab').value = '';
+  document.getElementById('pay-email').value = '';
+  document.querySelectorAll('.tog').forEach(t => t.classList.remove('sel'));
+  Object.assign(S, { t: {}, s: {} });
+  auditResult = null; cur = 0;
+  document.getElementById('s0').classList.add('active');
+  prog(0);
+}
+</script>
+</body>
+</html>

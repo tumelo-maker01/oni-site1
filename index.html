@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ONI · Opportunity Network Insider</title>
+<meta name="description" content="The newsletter that turns African professionals into LinkedIn authorities. One insight. One move. One opportunity — every week." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --oni-green: #899C1C;
+  --oni-green-bright: #C8D84A;
+  --oni-black: #0D0D0B;
+  --oni-dark: #111110;
+  --oni-surface: #1a1a18;
+  --oni-border: rgba(255,255,255,0.07);
+  --oni-border-green: rgba(137,156,28,0.2);
+  --oni-text: #FAFAF7;
+  --oni-muted: rgba(255,255,255,0.4);
+  --oni-dim: rgba(255,255,255,0.22);
+  --font-serif: 'DM Serif Display', Georgia, serif;
+  --font-sans: 'Inter', -apple-system, sans-serif;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --radius-pill: 24px;
+}
+
+html { scroll-behavior: smooth; }
+body { font-family: var(--font-sans); background: var(--oni-black); color: var(--oni-text); min-height: 100vh; -webkit-font-smoothing: antialiased; }
+
+/* ── NAV ── */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(13,13,11,0.92);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--oni-border);
+  padding: 0 24px;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 58px;
+}
+.nav-logo { font-family: var(--font-serif); font-size: 20px; color: var(--oni-text); text-decoration: none; }
+.nav-logo em { color: var(--oni-green-bright); font-style: normal; }
+.nav-links { display: flex; align-items: center; gap: 6px; }
+.nav-link {
+  font-size: 12px; color: var(--oni-muted); text-decoration: none;
+  padding: 6px 14px; border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+  transition: all 0.2s; letter-spacing: 0.01em;
+}
+.nav-link:hover { color: var(--oni-text); border-color: var(--oni-border); }
+.nav-link.primary {
+  background: var(--oni-green); color: #fff;
+  border-color: var(--oni-green);
+}
+.nav-link.primary:hover { opacity: 0.88; }
+.nav-mobile-menu { display: none; cursor: pointer; background: none; border: none; color: var(--oni-muted); font-size: 20px; padding: 4px; }
+
+/* ── HERO ── */
+.hero {
+  position: relative; overflow: hidden;
+  padding: 80px 24px 64px;
+  max-width: 700px; margin: 0 auto;
+}
+.hero::before {
+  content: '';
+  position: absolute; top: -80px; right: -80px;
+  width: 360px; height: 360px;
+  background: var(--oni-green);
+  border-radius: 50%; opacity: 0.07;
+  pointer-events: none;
+}
+.hero::after {
+  content: '';
+  position: absolute; bottom: -60px; left: -60px;
+  width: 240px; height: 240px;
+  background: var(--oni-green-bright);
+  border-radius: 50%; opacity: 0.04;
+  pointer-events: none;
+}
+.brand-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 10px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--oni-green-bright);
+  border: 1px solid rgba(200,216,74,0.2);
+  padding: 5px 14px; border-radius: var(--radius-pill);
+  margin-bottom: 28px; position: relative;
+}
+.brand-tag::before { content: ''; width: 5px; height: 5px; background: var(--oni-green-bright); border-radius: 50%; }
+.hero h1 {
+  font-family: var(--font-serif); font-size: clamp(34px, 7vw, 52px);
+  color: var(--oni-text); line-height: 1.12;
+  margin-bottom: 20px; position: relative;
+  font-weight: 400;
+}
+.hero h1 em { color: var(--oni-green-bright); }
+.hero-sub {
+  font-size: 15px; color: var(--oni-muted); line-height: 1.75;
+  margin-bottom: 36px; max-width: 500px; position: relative;
+}
+.form-row { display: flex; gap: 8px; margin-bottom: 14px; position: relative; flex-wrap: wrap; }
+.oni-input {
+  flex: 1; min-width: 200px;
+  padding: 13px 18px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: var(--radius);
+  font-size: 14px; color: var(--oni-text);
+  font-family: var(--font-sans);
+  transition: border-color 0.2s;
+}
+.oni-input:focus { outline: none; border-color: var(--oni-green); }
+.oni-input::placeholder { color: rgba(255,255,255,0.28); }
+.oni-btn {
+  padding: 13px 24px;
+  background: var(--oni-green); color: var(--oni-text);
+  border: none; border-radius: var(--radius);
+  font-size: 14px; font-weight: 500;
+  cursor: pointer; font-family: var(--font-sans);
+  white-space: nowrap; transition: opacity 0.2s;
+}
+.oni-btn:hover { opacity: 0.88; }
+.oni-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.form-note { font-size: 11px; color: var(--oni-dim); position: relative; }
+.form-success { display: none; font-size: 13px; color: var(--oni-green-bright); padding: 10px 0; }
+
+.divider { height: 1px; background: var(--oni-border); margin: 28px 0; position: relative; }
+.proof { display: flex; gap: 20px; flex-wrap: wrap; position: relative; }
+.proof-item { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--oni-muted); }
+.proof-item::before { content: '✓'; color: var(--oni-green); font-weight: 600; font-size: 11px; }
+
+/* ── WHAT YOU GET ── */
+.what {
+  background: var(--oni-dark);
+  border-top: 1px solid var(--oni-border);
+  border-bottom: 1px solid var(--oni-border);
+  padding: 64px 24px;
+}
+.what-inner { max-width: 700px; margin: 0 auto; }
+.section-label { font-size: 10px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--oni-green); margin-bottom: 10px; }
+.what h2 { font-family: var(--font-serif); font-size: clamp(24px, 4vw, 34px); font-weight: 400; color: var(--oni-text); margin-bottom: 10px; line-height: 1.2; }
+.what h2 em { color: var(--oni-green-bright); }
+.what-sub { font-size: 14px; color: var(--oni-muted); line-height: 1.7; margin-bottom: 36px; max-width: 480px; }
+.cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 36px; }
+.card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--oni-border);
+  border-radius: var(--radius-lg); padding: 20px;
+  transition: border-color 0.2s;
+}
+.card:hover { border-color: var(--oni-border-green); }
+.card-num { font-size: 10px; font-weight: 500; letter-spacing: 0.15em; color: var(--oni-green); text-transform: uppercase; margin-bottom: 10px; }
+.card-title { font-size: 15px; color: var(--oni-text); line-height: 1.3; margin-bottom: 8px; font-family: var(--font-serif); font-weight: 400; }
+.card-title em { color: var(--oni-green-bright); }
+.card-desc { font-size: 12px; color: var(--oni-muted); line-height: 1.65; }
+
+/* ── ABOUT ── */
+.about-box {
+  display: flex; gap: 16px; align-items: flex-start;
+  background: rgba(137,156,28,0.07);
+  border: 1px solid var(--oni-border-green);
+  border-radius: var(--radius-lg); padding: 20px;
+}
+.avatar {
+  width: 56px; height: 56px; border-radius: 50%;
+  background: var(--oni-green); flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-serif); font-size: 20px; color: var(--oni-text);
+  overflow: hidden;
+  border: 2px solid rgba(200,216,74,0.3);
+}
+.avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.about-name { font-size: 14px; font-weight: 600; color: var(--oni-text); margin-bottom: 2px; }
+.about-role { font-size: 10px; color: var(--oni-green); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
+.about-bio { font-size: 13px; color: var(--oni-muted); line-height: 1.65; }
+
+/* ── BOTTOM CTA ── */
+.bottom-cta {
+  background: #5C6A10;
+  padding: 64px 24px;
+  text-align: center;
+}
+.bottom-cta-inner { max-width: 540px; margin: 0 auto; }
+.bottom-cta h2 { font-family: var(--font-serif); font-size: clamp(26px, 5vw, 38px); font-weight: 400; color: var(--oni-text); line-height: 1.2; margin-bottom: 12px; }
+.bottom-cta h2 em { color: var(--oni-green-bright); }
+.bottom-cta p { font-size: 14px; color: rgba(255,255,255,0.55); margin-bottom: 28px; line-height: 1.7; }
+.bottom-form { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+.bottom-input {
+  flex: 1; min-width: 200px; max-width: 300px;
+  padding: 12px 18px;
+  background: rgba(0,0,0,0.2);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: var(--radius);
+  font-size: 14px; color: var(--oni-text);
+  font-family: var(--font-sans);
+}
+.bottom-input::placeholder { color: rgba(255,255,255,0.35); }
+.bottom-input:focus { outline: none; border-color: var(--oni-green-bright); }
+.bottom-btn {
+  padding: 12px 24px;
+  background: var(--oni-black); color: var(--oni-green-bright);
+  border: none; border-radius: var(--radius);
+  font-size: 14px; font-weight: 500;
+  cursor: pointer; font-family: var(--font-sans);
+  transition: opacity 0.2s; white-space: nowrap;
+}
+.bottom-btn:hover { opacity: 0.85; }
+.bottom-success { display: none; font-size: 13px; color: var(--oni-green-bright); margin-top: 12px; }
+
+/* ── FOOTER ── */
+footer {
+  background: var(--oni-black);
+  border-top: 1px solid var(--oni-border);
+  padding: 32px 24px;
+}
+.footer-inner {
+  max-width: 700px; margin: 0 auto;
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 20px;
+}
+.footer-brand { font-family: var(--font-serif); font-size: 15px; color: rgba(255,255,255,0.3); }
+.footer-brand em { color: var(--oni-green-bright); font-style: normal; }
+.footer-nav { display: flex; gap: 8px; flex-wrap: wrap; }
+.footer-link {
+  font-size: 11px; color: rgba(255,255,255,0.25);
+  border: 1px solid rgba(255,255,255,0.08);
+  padding: 5px 12px; border-radius: 6px;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  text-decoration: none; transition: all 0.2s;
+}
+.footer-link:hover { color: var(--oni-green-bright); border-color: var(--oni-border-green); }
+.footer-legal { width: 100%; border-top: 1px solid var(--oni-border); padding-top: 20px; margin-top: 4px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+.footer-copy { font-size: 11px; color: var(--oni-dim); }
+.footer-policy-links { display: flex; gap: 16px; }
+.footer-policy-links a { font-size: 11px; color: var(--oni-dim); text-decoration: none; transition: color 0.2s; }
+.footer-policy-links a:hover { color: var(--oni-green-bright); }
+
+/* ── MOBILE ── */
+@media (max-width: 640px) {
+  .nav-links { display: none; }
+  .nav-links.open { display: flex; flex-direction: column; position: absolute; top: 58px; left: 0; right: 0; background: rgba(13,13,11,0.98); padding: 16px 24px; border-bottom: 1px solid var(--oni-border); gap: 8px; }
+  .nav-mobile-menu { display: block; }
+  .hero { padding: 48px 20px 40px; }
+  .hero h1 { font-size: 34px; }
+  .cards { grid-template-columns: 1fr; }
+  .what { padding: 48px 20px; }
+  .bottom-cta { padding: 48px 20px; }
+  footer { padding: 24px 20px; }
+  .footer-inner { flex-direction: column; align-items: flex-start; gap: 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <a class="nav-logo" href="/">The <em>ONI</em> Insider</a>
+  <div class="nav-links" id="nav-links">
+    <a class="nav-link" href="/terms">Terms</a>
+    <a class="nav-link" href="/privacy">Privacy</a>
+    <a class="nav-link" href="/refunds">Refunds</a>
+    <a class="nav-link primary" href="/auditor">Authority Auditor →</a>
+  </div>
+  <button class="nav-mobile-menu" onclick="document.getElementById('nav-links').classList.toggle('open')">☰</button>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="brand-tag">ONI · Opportunity Network Insider</div>
+  <h1>The newsletter that turns<br><em>African professionals</em><br>into LinkedIn authorities.</h1>
+  <p class="hero-sub">One insight. One move. One opportunity — every week. Join professionals and founders who are done being invisible on LinkedIn.</p>
+
+  <div class="form-row">
+    <input class="oni-input" type="email" id="hero-email" placeholder="Enter your email address" />
+    <button class="oni-btn" onclick="subscribe('hero')">Join The ONI Insider →</button>
+  </div>
+  <p class="form-note" id="hero-note">Free. Weekly. No spam. Unsubscribe anytime.</p>
+  <div class="form-success" id="hero-success">✓ You're in. Check your inbox for a welcome from ONI.</div>
+
+  <div class="divider"></div>
+  <div class="proof">
+    <div class="proof-item">Weekly insight for African professionals</div>
+    <div class="proof-item">One actionable move per issue</div>
+    <div class="proof-item">Built around LinkedIn authority</div>
+  </div>
+</section>
+
+<!-- WHAT YOU GET -->
+<section class="what">
+  <div class="what-inner">
+    <div class="section-label">Every issue</div>
+    <h2>Three sections. No filler. <em>Every week.</em></h2>
+    <p class="what-sub">The ONI Insider has exactly three sections every issue — an insight, a move, and an opportunity. Nothing else.</p>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-num">01 · Insight</div>
+        <div class="card-title">The idea that <em>shifts</em> how you think</div>
+        <div class="card-desc">A counterintuitive truth about LinkedIn authority grounded in what's actually working right now for African professionals.</div>
+      </div>
+      <div class="card">
+        <div class="card-num">02 · ONI Move</div>
+        <div class="card-title">One thing to <em>do</em> this week</div>
+        <div class="card-desc">A specific step-by-step action you can complete in under an hour. One move, clear instructions, real results.</div>
+      </div>
+      <div class="card">
+        <div class="card-num">03 · This Week</div>
+        <div class="card-title">A tool, resource, or <em>opportunity</em></div>
+        <div class="card-desc">Something relevant — a tool, a resource, or an opportunity curated specifically for African professionals and founders.</div>
+      </div>
+    </div>
+
+    <div class="about-box">
+      <div class="avatar"><img src="/images/tumelo.jpg" alt="Tumelo Sebokoane" /></div>
+      <div>
+        <div class="about-name">Tumelo Sebokoane</div>
+        <div class="about-role">Founder, ONI · Entrepreneur & Investor</div>
+        <div class="about-bio">Based in Johannesburg. I built ONI because African professionals deserve a platform built specifically for us — not adapted from frameworks built for someone else's market.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BOTTOM CTA -->
+<section class="bottom-cta">
+  <div class="bottom-cta-inner">
+    <h2>Stop being <em>invisible.</em><br>Start attracting opportunities.</h2>
+    <p>Join professionals and founders building real LinkedIn authority — one week at a time.</p>
+    <div class="bottom-form">
+      <input class="bottom-input" type="email" id="bottom-email" placeholder="Your email address" />
+      <button class="bottom-btn" onclick="subscribe('bottom')">Join free →</button>
+    </div>
+    <div class="bottom-success" id="bottom-success">✓ Welcome to ONI. Watch your inbox.</div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">The <em>ONI</em> Insider</div>
+    <div class="footer-nav">
+      <a class="footer-link" href="https://www.linkedin.com" target="_blank" rel="noopener">LinkedIn</a>
+      <a class="footer-link" href="https://www.tiktok.com/@africagrowth" target="_blank" rel="noopener">TikTok</a>
+      <a class="footer-link" href="/auditor">Auditor</a>
+    </div>
+    <div class="footer-legal">
+      <span class="footer-copy">© 2026 Opportunity Network Insider. All rights reserved.</span>
+      <div class="footer-policy-links">
+        <a href="/terms">Terms of Service</a>
+        <a href="/privacy">Privacy Policy</a>
+        <a href="/refunds">Refund Policy</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+async function subscribe(loc) {
+  const emailEl = document.getElementById(loc + '-email');
+  const email = emailEl.value.trim();
+  const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  if (!valid) { emailEl.style.borderColor = '#E24B4A'; return; }
+  emailEl.style.borderColor = '';
+
+  const btn = emailEl.nextElementSibling;
+  btn.disabled = true;
+  btn.textContent = 'Joining...';
+
+  try {
+    const res = await fetch('/.netlify/functions/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, tags: ['newsletter', 'oni-insider'] })
+    });
+    const data = await res.json();
+    if (data.success) {
+      emailEl.style.display = 'none';
+      btn.style.display = 'none';
+      const successEl = document.getElementById(loc + '-success');
+      if (successEl) successEl.style.display = 'block';
+      const noteEl = document.getElementById(loc + '-note');
+      if (noteEl) noteEl.style.display = 'none';
+    } else { throw new Error(); }
+  } catch {
+    btn.disabled = false;
+    btn.textContent = loc === 'hero' ? 'Join The ONI Insider →' : 'Join free →';
+    emailEl.style.borderColor = '#E24B4A';
+  }
+}
+
+// Allow Enter key to submit
+document.getElementById('hero-email').addEventListener('keydown', e => { if (e.key === 'Enter') subscribe('hero'); });
+document.getElementById('bottom-email').addEventListener('keydown', e => { if (e.key === 'Enter') subscribe('bottom'); });
+</script>
+</body>
+</html>

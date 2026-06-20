@@ -1,0 +1,29 @@
+[build]
+  functions = "netlify/functions"
+  publish = "."
+
+[[redirects]]
+  from = "/.netlify/functions/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/auditor"
+  to = "/auditor/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/terms"
+  to = "/terms/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/privacy"
+  to = "/privacy/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/refunds"
+  to = "/refunds/index.html"
+  status = 200
