@@ -9,7 +9,10 @@ exports.handler = async function(event, context) {
     const MAILERLITE_API_KEY = process.env.MAILERLITE_API_KEY;
     const MAILERLITE_GROUP_ID = process.env.MAILERLITE_GROUP_ID;
 
-    // Subscribe to MailerLite group
+    console.log('Subscribe attempt for:', email);
+    console.log('API key present:', !!MAILERLITE_API_KEY, 'length:', MAILERLITE_API_KEY ? MAILERLITE_API_KEY.length : 0);
+    console.log('Group ID:', MAILERLITE_GROUP_ID);
+
     const res = await fetch('https://connect.mailerlite.com/api/subscribers', {
       method: 'POST',
       headers: {
@@ -24,6 +27,9 @@ exports.handler = async function(event, context) {
 
     const data = await res.json();
 
+    console.log('MailerLite response status:', res.status);
+    console.log('MailerLite response body:', JSON.stringify(data));
+
     if (res.ok && data.data) {
       return {
         statusCode: 200,
@@ -34,10 +40,11 @@ exports.handler = async function(event, context) {
         body: JSON.stringify({ success: true, subscriber: data.data })
       };
     } else {
-      throw new Error(data.message || 'MailerLite subscription failed');
+      throw new Error(data.message || JSON.stringify(data) || 'MailerLite subscription failed');
     }
 
   } catch(err) {
+    console.error('Subscribe error:', err.message);
     return {
       statusCode: 500,
       headers: { 'Access-Control-Allow-Origin': '*' },
