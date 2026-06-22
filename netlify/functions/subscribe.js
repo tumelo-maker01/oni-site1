@@ -4,14 +4,24 @@ exports.handler = async function(event, context) {
   }
 
   try {
-    const { email } = JSON.parse(event.body);
+    const { email, source } = JSON.parse(event.body);
 
     const MAILERLITE_API_KEY = process.env.MAILERLITE_API_KEY;
-    const MAILERLITE_GROUP_ID = process.env.MAILERLITE_GROUP_ID;
 
-    console.log('Subscribe attempt for:', email);
-    console.log('API key present:', !!MAILERLITE_API_KEY, 'length:', MAILERLITE_API_KEY ? MAILERLITE_API_KEY.length : 0);
-    console.log('Group ID:', MAILERLITE_GROUP_ID);
+    // Route to the correct MailerLite group depending on which flow triggered this.
+    // 'newsletter' (default) = main ONI Insider signup
+    // 'auditor_paid'         = successful R199 auditor payment
+    // 'auditor_abandoned'    = entered email, opened Paystack, did not complete payment
+    let groupId;
+    if (source === 'auditor_paid') {
+      groupId = process.env.MAILERLITE_GROUP_ID_AUDITOR_PAID;
+    } else if (source === 'auditor_abandoned') {
+      groupId = process.env.MAILERLITE_GROUP_ID_AUDITOR_ABANDONED;
+    } else {
+      groupId = process.env.MAILERLITE_GROUP_ID;
+    }
+
+    console.log('Subscribe attempt for:', email, 'source:', source || 'newsletter', 'groupId:', groupId);
 
     const res = await fetch('https://connect.mailerlite.com/api/subscribers', {
       method: 'POST',
@@ -21,7 +31,7 @@ exports.handler = async function(event, context) {
       },
       body: JSON.stringify({
         email: email,
-        groups: [MAILERLITE_GROUP_ID]
+        groups: [groupId]
       })
     });
 
