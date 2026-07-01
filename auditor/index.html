@@ -283,7 +283,7 @@
 </div>
 
 <script>
-<script>
+
 const PAYSTACK_KEY = 'pk_live_8c88dcf7bdd94e6edc9909a8f2cf9d7700c0acf4';
 const AMOUNT = 19900;
 const S = { t: {}, s: {} };
@@ -461,7 +461,93 @@ function pay() {
       fetch('/.netlify/functions/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email, source:
+        body: JSON.stringify({ email: email, source: 'auditor_paid' })
+      }).catch(e => console.error('Tagging auditor_paid failed:', e));
+      unlockReport();
+    },
+    onClose: function() {
+      btn.disabled = false;
+      btn.textContent = 'Pay R199 & unlock report →';
+      if (!paymentCompleted) {
+        fetch('/.netlify/functions/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email, source: 'auditor_abandoned' })
+        }).catch(e => console.error('Tagging auditor_abandoned failed:', e));
+      }
+    }
+  });
+  handler.openIframe();
+}
+
+function unlockReport() {
+  document.getElementById('free-preview').classList.remove('vis');
+  const r = auditResult;
+  const C = 2 * Math.PI * 34;
+  const offset = C - (r.total / 100) * C;
+  const rc = colr(r.total, 100);
+
+  document.getElementById('report').innerHTML = `
+    <div class="success-badge">✓ Payment confirmed — full report unlocked</div>
+    <div class="score-block">
+      <div class="ring-wrap">
+        <svg width="80" height="80" viewBox="0 0 80 80">
+          <circle cx="40" cy="40" r="34" fill="none" stroke="#e5e5e0" stroke-width="6"/>
+          <circle cx="40" cy="40" r="34" fill="none" stroke="${rc}" stroke-width="6"
+            stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${offset.toFixed(1)}" stroke-linecap="round"/>
+        </svg>
+        <div class="ring-num">${r.total}</div>
+      </div>
+      <div class="score-info"><h2>${r.level}</h2><p>${r.level_description}</p></div>
+    </div>
+    <div class="pillars-full">${Object.entries(r.pillars).map(([k,p]) => {
+      const c = colr(p.score,20);
+      return `<div class="pillar-full"><div class="pf-top"><span class="pf-name">${k}</span><span class="pf-score" style="color:${c}">${p.score}/20</span></div><div class="pf-bg"><div class="pf-fill" style="width:${p.score/20*100}%;background:${c}"></div></div><div class="pf-note">${p.note}</div></div>`;
+    }).join('')}</div>
+    <div class="fixes-title">Your top 3 priority fixes</div>
+    ${r.fixes.map((f,i) => `<div class="fix"><div class="fix-num">Priority ${i+1}</div><div class="fix-h">${f.title}</div><div class="fix-b">${f.body}</div></div>`).join('')}
+    <div class="hl-box"><div class="hl-label">✦ ONI headline rewrite</div><div class="hl-text">${r.headline_rewrite}</div></div>
+    <div class="ctas">
+      <button class="cta-p" onclick="window.open('https://www.linkedin.com','_blank')">Go fix my profile →</button>
+      <button class="cta-s" onclick="resetAll()">Audit another profile</button>
+    </div>`;
+
+  document.getElementById('report').classList.add('vis');
+}
+
+function getFallback() {
+  return {
+    total: 48, level: "Underpositioned",
+    level_description: "Your profile exists but it isn't actively working for you. Opportunities are passing by because the right signals aren't in place yet.",
+    pillars: {
+      clarity: { score: 10, note: "Your headline names your role but doesn't communicate who you help or what result they get." },
+      credibility: { score: 9, note: "Proof points are thin. Visitors can't easily verify your expertise or track record." },
+      content: { score: 8, note: "Inconsistent posting means you're invisible most of the time." },
+      connection: { score: 13, note: "You have a network but it isn't being actively engaged." },
+      cta: { score: 8, note: "It's unclear what someone should do after viewing your profile." }
+    },
+    fixes: [
+      { title: "Rewrite your headline for outcomes not titles", body: "Remove the job title and replace it with the result you deliver. Use the formula: [Who you are] helping [audience] achieve [specific outcome]." },
+      { title: "Post once a week on the same day", body: "Consistency beats frequency. One post every Tuesday builds a pattern. Pick a topic lane and commit for 90 days." },
+      { title: "Add a clear CTA to your About section", body: "End your About section with one specific action — book a call, download something, send a message." }
+    ],
+    headline_rewrite: "Founder & Strategist | Helping African professionals attract opportunities through LinkedIn authority"
+  };
+}
+
+function resetAll() {
+  document.getElementById('report').classList.remove('vis');
+  document.getElementById('report').innerHTML = '';
+  document.getElementById('free-preview').classList.remove('vis');
+  document.getElementById('hl').value = '';
+  document.getElementById('ab').value = '';
+  document.getElementById('pay-email').value = '';
+  document.querySelectorAll('.tog').forEach(t => t.classList.remove('sel'));
+  Object.assign(S, { t: {}, s: {} });
+  auditResult = null; cur = 0;
+  document.getElementById('s0').classList.add('active');
+  prog(0);
+}
 </script>
 </body>
 </html>
