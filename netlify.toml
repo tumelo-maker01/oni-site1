@@ -26,6 +26,11 @@
 [[redirects]]
   from = "/refunds"
   to = "/refunds/index.html"
+
+  [[redirects]]
+  from = "/30-days"
+  to = "/30-days/index.html"
+  status = 200
   status = 200
   
   [[redirects]]
