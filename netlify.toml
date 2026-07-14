@@ -3,12 +3,6 @@
   publish = "."
 
 [[redirects]]
-  from = "/.netlify/functions/*"
-  to = "/.netlify/functions/:splat"
-  status = 200
-  force = true
-
-[[redirects]]
   from = "/auditor"
   to = "/auditor/index.html"
   status = 200
