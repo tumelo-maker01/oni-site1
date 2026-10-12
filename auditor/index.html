@@ -312,7 +312,7 @@ async function runAudit() {
   const about = document.getElementById('ab').value.trim();
   const pts = ['pt-opinion','pt-tips','pt-stories','pt-results'].filter(k => S.t[k]);
 
-  const prompt = `You are the ONI Authority Auditor — an AI scoring engine built on the ONI (Opportunity Network Insider) methodology for African professionals and founders. ONI's 5 pillars of LinkedIn authority are: Clarity, Credibility, Content, Connection, and Call to Action.
+  const prompt = `You are the ONI Authority Auditor — an AI scoring engine built on the ONI (Opportunity Network Insider) methodology for professionals and founders. ONI's 5 pillars of LinkedIn authority are: Clarity, Credibility, Content, Connection, and Call to Action.
 
 Analyze this LinkedIn profile data and return ONLY a valid JSON object. No markdown, no extra text.
 
@@ -502,7 +502,7 @@ function getFallback() {
       { title: "Post once a week on the same day", body: "Consistency beats frequency. One post every Tuesday builds a pattern. Pick a topic lane and commit for 90 days." },
       { title: "Add a clear CTA to your About section", body: "End your About section with one specific action — book a call, download something, send a message." }
     ],
-    headline_rewrite: "Founder & Strategist | Helping African professionals attract opportunities through LinkedIn authority"
+    headline_rewrite: "Founder & Strategist | Helping professionals attract opportunities through LinkedIn authority"
   };
 }
 
